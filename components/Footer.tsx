@@ -9,7 +9,7 @@ interface FooterProps {
     t: Record<string, string>;
 }
 
-const Footer: React.FC<FooterProps> = ({ lang, t }) => {
+const Footer = React.memo<FooterProps>(({ lang, t }) => {
     const year = new Date().getFullYear();
 
     const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
@@ -83,6 +83,12 @@ const Footer: React.FC<FooterProps> = ({ lang, t }) => {
                                     {t.contact_email}
                                 </p>
                             </div>
+                            <div className="group cursor-pointer">
+                                <p className="text-[8px] md:text-[9px] text-white/20 uppercase tracking-[0.2em] mb-2">Phone</p>
+                                <p className="text-sm md:text-base font-black tracking-tighter border-b border-white/5 group-hover:border-blue-500 transition-all pb-1 inline-block text-white/80 group-hover:text-white">
+                                    {t.contact_phone}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,6 +108,6 @@ const Footer: React.FC<FooterProps> = ({ lang, t }) => {
             </div>
         </footer>
     );
-};
+});
 
 export default Footer;

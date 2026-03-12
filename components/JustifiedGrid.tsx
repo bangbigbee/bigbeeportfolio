@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { ProductCard } from '../types';
+import { getOptimizedUrl } from '../App';
+import SmartImage from './SmartImage';
 
 interface JustifiedGridProps {
     items: ProductCard[];
@@ -16,17 +18,19 @@ const JustifiedGrid: React.FC<JustifiedGridProps> = ({ items, onImageClick }) =>
                     className="flex-grow h-[250px] md:h-[400px] relative group cursor-pointer overflow-hidden rounded-none bg-white shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1"
                     onClick={() => onImageClick(item)}
                 >
-                    <img 
-                        src={item.imageUrl} 
+                    <SmartImage 
+                        src={getOptimizedUrl(item.imageUrl, 'preview')} 
                         alt={item.title} 
+                        aspectRatio="fill"
                         className="min-w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105"
+                        overlay={
+                            <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 z-20">
+                                <p className="text-[10px] font-bold text-white tracking-widest uppercase bg-black/40 backdrop-blur-md px-3 py-1 rounded-none w-fit">
+                                    {item.category}
+                                </p>
+                            </div>
+                        }
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
-                    <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
-                        <p className="text-[10px] font-bold text-white tracking-widest uppercase bg-black/40 backdrop-blur-md px-3 py-1 rounded-none w-fit">
-                            {item.category}
-                        </p>
-                    </div>
                 </div>
             ))}
         </div>

@@ -1,17 +1,20 @@
 {
-  "name": "bigbee-–-đỉnh-cao-visual,-tái-định-nghĩa-cái-đẹp",
+  "name": "bigbee-–-hình-ảnh-không-chỉ-để-đẹp.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "react-dom": "^19.2.3",
-    "react": "^19.2.3",
-    "lucide-react": "^0.563.0"
+    "@tailwindcss/vite": "^4.2.1",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

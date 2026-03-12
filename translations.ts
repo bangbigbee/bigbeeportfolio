@@ -6,12 +6,12 @@ export type TranslationStore = Record<Language, TranslationData>;
 
 export const FALLBACK_TRANSLATIONS: TranslationStore = {
   vi: {
-    og_title: "Bigbee Studio – Hình ảnh không chỉ để đẹp.",
+    og_title: "Bigbee – Hình ảnh không chỉ để đẹp.",
     og_subtitle: "Chúng tôi tạo hình ảnh và video giúp thương hiệu được nhìn thấy, được nhớ và được chọn.",
     
-    hero_title: "ĐỈNH CAO VISUAL.",
-    hero_subtitle: "THĂNG HOA KHOẢNH KHẮC.",
-    hero_desc: "BigBee kiến tạo những câu chuyện hình ảnh cao cấp cho thương hiệu và không gian của bạn.",
+    hero_title: "QUA TỪNG KHUNG HÌNH .",
+    hero_subtitle: "CẢM XÚC THĂNG HOA .",
+    hero_desc: "BIGBEE KIẾN TẠO NHỮNG CÂU CHUYỆN HÌNH ẢNH CAO CẤP CHO THƯƠNG HIỆU VÀ KHÔNG GIAN CỦA BẠN.",
     hero_cta: "KHÁM PHÁ BIGBEE",
     
     // Categories
@@ -101,12 +101,12 @@ export const FALLBACK_TRANSLATIONS: TranslationStore = {
     footer_desc: "BigBee Studio kiến tạo những di sản hình ảnh thông qua ngôn ngữ điện ảnh đặc trưng."
   },
   en: {
-    og_title: "Bigbee Studio – More than just aesthetics.",
+    og_title: "Bigbee – More than just aesthetics.",
     og_subtitle: "We create visuals and videos that help your brand be seen, remembered, and chosen.",
 
-    hero_title: "VISUAL EXCELLENCE.",
-    hero_subtitle: "MOMENTS UNFOLDED.",
-    hero_desc: "BigBee crafts premium visual narratives for your brand and spaces.",
+    hero_title: "EVERY FRAME KEEPS .",
+    hero_subtitle: "EMOTIONS BLOOM .",
+    hero_desc: "BIGBEE CRAFTS PREMIUM VISUAL NARRATIVES FOR YOUR BRAND AND SPACES.",
     hero_cta: "EXPLORE BIGBEE",
 
     nav_food_beverage: "FOOD & BEVERAGE",

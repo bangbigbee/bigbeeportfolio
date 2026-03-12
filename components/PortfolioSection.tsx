@@ -45,7 +45,7 @@ const PortfolioSection: React.FC<PortfolioSectionProps> = ({
 
             <div className="mb-16 min-h-[300px]">
                 {items.length > 0 ? (
-                    <SmartMasonry items={items.slice(0, 8)} onImageClick={onImageClick} />
+                    <SmartMasonry items={items.slice(0, 9)} onImageClick={onImageClick} />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-64 border-y border-gray-50 bg-gray-50/20 rounded-[6px]">
                         <div className="w-12 h-12 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-4" />

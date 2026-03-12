@@ -1,92 +1,42 @@
-
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Bigbee Studio – Hình ảnh không chỉ để đẹp.</title>
-    
-    <!-- 1. PRECONNECT: Làm nóng kết nối tới Cloudinary -->
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-    <link rel="dns-prefetch" href="https://res.cloudinary.com">
-    
-    <!-- 2. PRELOAD: Tải trước ảnh Hero ngay lập tức (Dùng URL đã resize) -->
-    <link rel="preload" as="image" href="https://res.cloudinary.com/dhj3lf8ei/image/upload/f_auto,q_auto:best,w_2000/v1739988101/617861719_2659988441049494_2024938141444314660_n_hirofg.jpg" fetchpriority="high">
-
-    <!-- Meta Tags -->
-    <meta name="title" content="Bigbee Studio – Hình ảnh không chỉ để đẹp.">
-    <meta name="description" content="Chúng tôi tạo hình ảnh và video giúp thương hiệu được nhìn thấy, được nhớ và được chọn.">
-    <meta name="keywords" content="quay phim đà nẵng, chụp ảnh đà nẵng, bigbee studio, gastronomy photography, wedding film, real estate video, brand visual">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="author" content="BigBee Studio">
-    <link rel="canonical" href="https://bigbee.ltd/" />
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://bigbee.ltd/">
-    <meta property="og:title" content="Bigbee Studio – Hình ảnh không chỉ để đẹp.">
-    <meta property="og:description" content="Chúng tôi tạo hình ảnh và video giúp thương hiệu được nhìn thấy, được nhớ và được chọn.">
-    <meta property="og:image" content="https://res.cloudinary.com/dhj3lf8ei/image/upload/f_auto,q_auto,w_1200,h_630,c_fill/v1739988101/617861719_2659988441049494_2024938141444314660_n_hirofg.jpg">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='99' height='99' viewBox='0 0 99 99' fill='none'%3E%3Cpath d='M0 9C0 4.02943 4.02944 0 9 0H89.2798C94.2504 0 98.2798 4.02944 98.2798 9V89.2798C98.2798 94.2504 94.2504 98.2798 89.2798 98.2798H9C4.02943 98.2798 0 94.2504 0 89.2798V9Z' fill='%230E4500'/%3E%3Cpath d='M53.332 52.917C53.7212 53.0796 54.105 53.2355 54.4658 53.3818L54.585 53.4297C55.2821 53.7124 55.9073 53.9686 56.5107 54.2412L56.7334 54.3428C57.8297 54.8512 58.6942 55.3571 59.3965 55.959L59.5166 56.0645C60.7534 57.1738 62.079 59.1673 62.0791 63.8896V66.9482H45.5283C40.3806 66.948 36.208 63.0016 36.208 58.1338V52.917H53.332Z' fill='%230E4500'/%3E%3Cpath d='M62.0791 31.3311V36.1885C62.0791 37.982 61.7576 39.1089 61.3936 39.8408L61.3584 39.9102C61.003 40.5955 60.5077 41.1275 59.8135 41.6182L59.7461 41.665C59.0079 42.1747 58.0924 42.6177 56.8799 43.126L56.6338 43.2285C56.4931 43.2867 56.3476 43.3456 56.1982 43.4062L55.7363 43.5938C55.7254 43.5981 55.7145 43.6026 55.7036 43.607C54.9468 43.9125 54.0902 44.2584 53.2422 44.6426H36.208V40.1455C36.208 35.2777 40.3806 31.3311H62.0791Z' fill='%230E4500'/%3E%3Cpath d='M22.6738 18.4541C23.7487 18.4541 24.6198 19.2776 24.6201 20.2939C24.6201 21.3105 23.7488 22.1347 22.6738 22.1348C21.5988 22.1347 20.7276 21.3105 20.7275 20.2939C20.7278 19.2776 21.599 18.4542 22.6738 18.4541Z' fill='%230E4500'/%3E%3Cpath d='M0 9.82031C5.68382 9.79451 9.56513 10.5073 12.8223 11.585C10.9749 11.8214 9.07713 12.2574 7.34277 12.751L7.0918 12.8232C4.48315 13.5807 2.03989 14.5241 0.398438 15.3135L0.242188 15.3887C0.158176 15.4299 0.0779127 15.4759 0 15.5234V9.82031Z' fill='%230E4500'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M45.5283 23.0566C35.5478 23.0569 27.457 30.7077 27.457 40.1455V58.1338C27.457 67.5716 35.5478 75.2224 45.5283 75.2227H70.8291V63.8896C70.829 57.3595 68.8446 52.9736 65.4375 49.9707L65.2744 49.8291C64.8791 49.4903 64.475 49.1785 64.0684 48.8906C64.3493 48.7198 64.629 48.5394 64.9053 48.3486L65.0605 48.2402C66.6618 47.1066 68.1494 45.6089 69.2148 43.5547L69.2646 43.4561C70.3186 41.3801 70.8291 38.969 70.8291 36.1885V23.0566H45.5283ZM54.4658 53.3818C54.105 53.2355 53.7212 53.0796 53.332 52.917H36.208V58.1338C36.208 63.0016 40.3806 66.948 45.5283 66.9482H62.0791V63.8896C62.079 59.1673 60.7534 57.1738 59.5166 56.0645L59.3965 55.959C58.6942 55.3571 57.8297 54.8512 56.7334 54.3428L56.5107 54.2412C55.9073 53.9686 55.2821 53.7124 54.585 53.4297L54.4658 53.3818ZM62.0791 36.1885V31.3311H45.5283C40.3806 31.3313 36.208 35.2777 36.208 40.1455V44.6426H53.2422C54.0902 44.2584 54.9468 43.9125 55.7036 43.607L55.7363 43.5938L56.1982 43.4062C56.3476 43.3456 56.4931 43.2867 56.6338 43.2285L56.8799 43.126C58.0924 42.6177 59.0079 42.1747 59.7461 41.665L59.8135 41.6182C60.5077 40.5955 61.003 40.5955 61.3584 39.9102L61.3936 39.8408C61.7576 39.1089 62.0791 37.982 62.0791 36.1885Z' fill='white'/%3E%3C/svg%3E">
+    <meta name="theme-color" content="#0e4500">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        html { scroll-padding-top: 80px; }
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #ffffff;
-            color: #1d1d1f;
-            -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
-            overflow-x: hidden;
-        }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        @keyframes scroll-v { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(0, -50%, 0); } }
-        @keyframes marquee-rtl { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
-        @keyframes marquee-ltr { 0% { transform: translate3d(-50%, 0, 0); } 100% { transform: translate3d(0, 0, 0); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes comm-diag-stream { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(0, -50%, 0); } }
-        
-        .animate-scroll-v { animation: scroll-v linear infinite; will-change: transform; }
-        .animate-marquee-rtl { animation: marquee-rtl linear infinite; will-change: transform; }
-        .animate-marquee-ltr { animation: marquee-ltr linear infinite; will-change: transform; }
-        .animate-comm-diag-stream { animation: comm-diag-stream linear infinite; will-change: transform; }
-        
-        .mask-fade-edges-v { mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent); }
-        .transform-gpu { transform: translate3d(0,0,0); will-change: transform; }
-        
-        .image-load-fade {
-            opacity: 0;
-            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: opacity;
-        }
-        .image-load-fade.loaded { opacity: 1; }
+    <!-- Primary Meta Tags -->
+    <title>Bigbee – Hình ảnh không chỉ để đẹp.</title>
+    <meta name="title" content="Bigbee – Hình ảnh không chỉ để đẹp.">
+    <meta name="description" content="Hình ảnh và video được tạo ra không chỉ để đẹp, mà để thương hiệu được nhìn thấy, được nhớ và được chọn.">
 
-        .shimmer-bg {
-            background: linear-gradient(90deg, #f2f2f2 25%, #fafafa 50%, #f2f2f2 75%);
-            background-size: 200% 100%;
-            animation: shimmer 2s infinite linear;
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.bigbee.ltd/">
+    <meta property="og:title" content="Bigbee – Hình ảnh không chỉ để đẹp.">
+    <meta property="og:description" content="Hình ảnh và video được tạo ra không chỉ để đẹp, mà để thương hiệu được nhìn thấy, được nhớ và được chọn.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/portbigbee/portfolio-photo/main/617861719_2659988441049494_2024938141444314660_2.jpg">
+
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="preload" as="image" href="https://raw.githubusercontent.com/portbigbee/portfolio-photo/main/617861719_2659988441049494_2024938141444314660_n.jpg" fetchpriority="high">
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.4/",
+        "react": "https://esm.sh/react@^19.2.4",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+        "lucide-react": "https://esm.sh/lucide-react@^0.563.0"
+      }
+    }
+    </script>
+    
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/portbigbee/portfolio-photo/main/favicon.png">
+    <link rel="stylesheet" href="/index.css">
 </head>
-<body>
+<body class="bg-white text-black antialiased selection:bg-blue-500 selection:text-white">
     <div id="root"></div>
 <script type="module" src="/index.tsx"></script>
 </body>

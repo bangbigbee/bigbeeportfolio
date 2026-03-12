@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { ProductCard, Language } from '../types';
 import SmartMasonry from './SmartMasonry';
+import { getOptimizedUrl } from '../App';
 
 interface GalleryPageProps {
     initialAlbumKey?: string;
@@ -48,17 +49,8 @@ const GalleryPage: React.FC<GalleryPageProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState(initialAlbumKey);
     const [activeSubTab, setActiveSubTab] = useState<string>(initialSubKey || 'all');
-
-    useEffect(() => {
-        if (initialAlbumKey) {
-            setActiveTab(initialAlbumKey);
-            if (initialAlbumKey === 'wedding' && (!initialSubKey || initialSubKey === 'all')) {
-                setActiveSubTab('wedding_item_1');
-            } else {
-                setActiveSubTab(initialSubKey || 'all');
-            }
-        }
-    }, [initialAlbumKey, initialSubKey]);
+    const [visibleCount, setVisibleCount] = useState(18);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     const ALBUMS_CONFIG = useMemo(() => [
         { key: 'food-beverage', title: t.nav_food_beverage, photos: dynamicFood, videos: dynamicFoodVideos },
@@ -102,17 +94,44 @@ const GalleryPage: React.FC<GalleryPageProps> = ({
         return activeAlbum.photos || [];
     }, [activeTab, activeSubTab, activeAlbum, weddingCollections]);
 
+    const visibleItems = useMemo(() => filteredContent.slice(0, visibleCount), [filteredContent, visibleCount]);
+
+    // Infinite Scroll Implementation
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && visibleCount < filteredContent.length) {
+                    // Use a functional update to ensure we have the latest count
+                    setVisibleCount(prev => Math.min(prev + 18, filteredContent.length));
+                }
+            },
+            { threshold: 0.01, rootMargin: '800px' }
+        );
+
+        const sentinel = document.getElementById('scroll-sentinel');
+        if (sentinel) observer.observe(sentinel);
+
+        return () => observer.disconnect();
+    }, [visibleCount, filteredContent.length]);
+
     const handleTabClick = (e: React.MouseEvent<HTMLButtonElement>, key: string) => {
         setActiveTab(key);
         if (key === 'wedding') setActiveSubTab('wedding_item_1');
         else setActiveSubTab('all');
+        setVisibleCount(18);
         e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     };
 
     const handleSubTabClick = (e: React.MouseEvent<HTMLButtonElement>, key: string) => {
         setActiveSubTab(key);
+        setVisibleCount(18);
         e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     };
+
+    useEffect(() => {
+        const timer = setTimeout(() => setIsInitialLoading(false), 800);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="min-h-screen bg-white pt-16 md:pt-24 pb-12 overflow-x-hidden">
@@ -179,15 +198,33 @@ const GalleryPage: React.FC<GalleryPageProps> = ({
 
                 {/* Content Grid */}
                 <div className="min-h-[60vh] w-full mt-2">
-                    {filteredContent.length > 0 ? (
-                        <SmartMasonry 
-                            items={filteredContent} 
-                            onImageClick={(img) => onImageClick(img, filteredContent)} 
-                        />
+                    {visibleItems.length > 0 ? (
+                        <>
+                            <SmartMasonry 
+                                items={visibleItems} 
+                                onImageClick={(img) => onImageClick(img, filteredContent)} 
+                            />
+                            
+                            {/* Scroll Sentinel for Infinite Scroll */}
+                            <div id="scroll-sentinel" className="h-20 w-full flex items-center justify-center mt-8">
+                                {visibleCount < filteredContent.length && (
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-6 h-6 border-2 border-gray-100 border-t-black rounded-full animate-spin mb-2" />
+                                        <p className="text-[8px] font-black text-gray-300 uppercase tracking-[0.3em]">
+                                            {lang === 'vi' ? 'ĐANG TẢI THÊM...' : 'LOADING MORE...'}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-40">
-                            <div className="w-12 h-12 border-2 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-6" />
-                            <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Đang đồng bộ visual...</p>
+                            {!isInitialLoading && (
+                                <>
+                                    <div className="w-12 h-12 border-2 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-6" />
+                                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em]">Đang đồng bộ visual...</p>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>

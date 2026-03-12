@@ -1,15 +1,21 @@
 
 import React from 'react';
 import { ProductCard } from '../types';
+import { getOptimizedUrl } from '../App';
 
 const Card: React.FC<{ product: ProductCard }> = ({ product }) => {
+    const url = product.imageUrl ? getOptimizedUrl(product.imageUrl, 'preview') : undefined;
     return (
         <div className="relative rounded-[6px] bg-white overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-700 group cursor-pointer h-full min-h-[500px]">
-            <img 
-                src={product.imageUrl} 
-                alt={product.title} 
-                className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105"
-            />
+            {url && (
+                <img 
+                    src={url} 
+                    alt={product.title} 
+                    className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                />
+            )}
             {/* Overlay for text legibility at top */}
             <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/30 to-transparent opacity-60" />
             

@@ -1,8 +1,9 @@
-
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { X, ChevronLeft, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { ProductCard } from '../types';
-import { getCloudinaryUrl } from '../App';
+import { getOptimizedUrl } from '../App';
+import { ImageCache } from '../utils/imageCache';
+import { preloadImages } from '../utils/preloader';
 
 interface LightboxProps {
     items: ProductCard[];
@@ -12,42 +13,29 @@ interface LightboxProps {
 
 const Lightbox: React.FC<LightboxProps> = ({ items, initialIndex, onClose }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
-    const [isHighResLoaded, setIsHighResLoaded] = useState(false);
-    const [isPreviewLoaded, setIsPreviewLoaded] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-
     const activeItem = items[currentIndex];
 
-    const preloadImage = (url: string) => {
-        const img = new Image();
-        img.src = url;
-    };
+    const fullUrl = useMemo(() => {
+        if (!activeItem?.imageUrl) return undefined;
+        return getOptimizedUrl(activeItem.imageUrl, 'full');
+    }, [activeItem]);
+
+    const [isLoaded, setIsLoaded] = useState(() => fullUrl ? ImageCache.isLoaded(fullUrl) : false);
+    const [hasError, setHasError] = useState(false);
+    const touchStartX = useRef(0);
 
     useEffect(() => {
-        if (!items || items.length <= 1) return;
-        const nextIdx = (currentIndex + 1) % items.length;
-        const prevIdx = (currentIndex - 1 + items.length) % items.length;
-        // Tải trước bản preview (1200px) cho ảnh lân cận để chuyển ảnh mượt mà
-        if (items[nextIdx].imageUrl) preloadImage(getCloudinaryUrl(items[nextIdx].imageUrl, 'preview'));
-        if (items[prevIdx].imageUrl) preloadImage(getCloudinaryUrl(items[prevIdx].imageUrl, 'preview'));
-    }, [currentIndex, items]);
-
-    useEffect(() => {
-        setIsHighResLoaded(false);
-        setIsPreviewLoaded(false);
+        const cached = fullUrl ? ImageCache.isLoaded(fullUrl) : false;
+        setIsLoaded(cached);
+        setHasError(false);
         
-        if (!activeItem?.youtubeId && activeItem?.videoUrl && videoRef.current) {
-            const v = videoRef.current;
-            v.load();
-            v.play().catch(() => {
-                v.muted = true;
-                v.play();
-            });
+        if (activeItem?.youtubeId || activeItem?.videoUrl) {
+            setIsLoaded(true);
         }
-    }, [currentIndex, activeItem]);
+    }, [currentIndex, activeItem, fullUrl]);
 
-    const navigate = useCallback((direction: 'next' | 'prev') => {
-        if (direction === 'next') setCurrentIndex((prev) => (prev + 1) % items.length);
+    const navigate = useCallback((dir: 'next' | 'prev') => {
+        if (dir === 'next') setCurrentIndex((prev) => (prev + 1) % items.length);
         else setCurrentIndex((prev) => (prev - 1 + items.length) % items.length);
     }, [items.length]);
 
@@ -58,107 +46,133 @@ const Lightbox: React.FC<LightboxProps> = ({ items, initialIndex, onClose }) => 
             if (e.key === 'ArrowLeft') navigate('prev');
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onClose, navigate]);
+        document.body.style.overflow = 'hidden';
+
+        // Preload all images in the album when lightbox opens
+        const allUrls = items
+            .map(item => getOptimizedUrl(item.imageUrl, 'full'))
+            .filter((url): url is string => !!url);
+        
+        if (allUrls.length > 0) {
+            preloadImages(allUrls, 3, 'low');
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = '';
+        };
+    }, [onClose, navigate, items]);
 
     if (!activeItem) return null;
 
-    const isVideo = activeItem.resourceType === 'video' || !!activeItem.videoUrl || !!activeItem.youtubeId;
-
-    const youtubeUrl = activeItem.youtubeId 
-        ? `https://www.youtube-nocookie.com/embed/${activeItem.youtubeId}?autoplay=1&rel=0&enablejsapi=1&widgetid=1` 
-        : '';
-
     return (
         <div 
-            className="fixed inset-0 z-[200] bg-white/95 backdrop-blur-3xl flex items-center justify-center animate-in fade-in duration-500 overflow-hidden"
+            className="fixed inset-0 z-[10000] bg-black flex flex-col select-none overflow-hidden animate-in fade-in duration-300"
             onClick={onClose}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+                const diff = touchStartX.current - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) navigate('next');
+                    else navigate('prev');
+                }
+            }}
         >
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-5">
-                <img 
-                    src={activeItem.youtubeId ? activeItem.imageUrl : getCloudinaryUrl(activeItem.imageUrl, 'thumb')} 
-                    className="w-full h-full object-cover blur-[120px] scale-150"
-                    alt=""
-                />
-            </div>
-
-            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="absolute top-6 right-6 md:top-8 md:right-8 p-3 bg-black/5 hover:bg-black/10 rounded-full transition-all z-[220] group">
-                <X className="w-5 h-5 md:w-6 md:h-6 text-black group-hover:scale-110" />
-            </button>
-
-            {items.length > 1 && (
-                <>
-                    <button onClick={(e) => { e.stopPropagation(); navigate('prev'); }} className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 md:p-6 bg-white/60 backdrop-blur-2xl border border-black/5 hover:bg-black hover:text-white rounded-full transition-all z-[220] group shadow-xl">
-                        <ChevronLeft className="w-5 h-5 md:w-8 md:h-8 group-hover:-translate-x-1 transition-transform" />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate('next'); }} className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 md:p-6 bg-white/60 backdrop-blur-2xl border border-black/5 hover:bg-black hover:text-white rounded-full transition-all z-[220] group shadow-xl">
-                        <ChevronRight className="w-5 h-5 md:w-8 md:h-8 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </>
-            )}
-
-            <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12 z-[220] pointer-events-none max-w-xl">
-                <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-black text-white text-[9px] md:text-[10px] font-black tracking-widest uppercase">
+            {/* Header: Số thứ tự và nút đóng */}
+            <div className="absolute top-0 left-0 w-full flex justify-between items-center p-4 md:p-8 z-[10020] pointer-events-none">
+                <div className="bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 pointer-events-auto shadow-lg">
+                    <span className="text-[11px] md:text-xs font-black text-white tracking-widest">
                         {currentIndex + 1} / {items.length}
                     </span>
-                    <span className="text-[9px] md:text-[10px] font-black tracking-[0.3em] text-black/30 uppercase">{activeItem.category}</span>
                 </div>
-                <h4 className="text-xl md:text-4xl font-black uppercase tracking-tighter text-black leading-none">{activeItem.title}</h4>
-                <p className="text-[10px] md:text-[13px] font-medium text-black/40 uppercase tracking-widest mt-2">{activeItem.subtitle}</p>
+                
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                    className="p-3 md:p-4 bg-white text-black rounded-full transition-all group shadow-2xl active:scale-90 pointer-events-auto border-none"
+                >
+                    <X className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform duration-300" />
+                </button>
             </div>
 
-            <div className="relative w-full h-full flex items-center justify-center p-4 md:p-12 lg:p-24 z-10" onClick={(e) => e.stopPropagation()}>
-                {activeItem.youtubeId ? (
-                    <div className="relative w-full max-w-[1280px] aspect-video shadow-[0_40px_120px_rgba(0,0,0,0.15)] bg-black">
-                        <iframe 
-                            src={youtubeUrl} 
-                            title={activeItem.title}
-                            className="w-full h-full"
-                            frameBorder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowFullScreen
-                        ></iframe>
-                    </div>
-                ) : (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {!isPreviewLoaded && !isVideo && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 z-20 pointer-events-none">
-                                <Loader2 className="w-8 h-8 md:w-12 md:h-12 text-blue-600 animate-spin opacity-30" />
-                            </div>
-                        )}
-                        
-                        {activeItem.videoUrl ? (
+            {/* Vùng hiển thị nội dung */}
+            <div className="flex-1 w-full relative flex items-center justify-center overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                
+                {/* Nút điều hướng */}
+                {items.length > 1 && (
+                    <>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); navigate('prev'); }} 
+                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 md:p-5 bg-black/40 hover:bg-white text-white hover:text-black rounded-full transition-all z-[10020] active:scale-90 backdrop-blur-md border border-white/10 shadow-2xl"
+                        >
+                            <ChevronLeft className="w-5 h-5 md:w-8 md:h-8" />
+                        </button>
+
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); navigate('next'); }} 
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 md:p-5 bg-black/40 hover:bg-white text-white hover:text-black rounded-full transition-all z-[10020] active:scale-90 backdrop-blur-md border border-white/10 shadow-2xl"
+                        >
+                            <ChevronRight className="w-5 h-5 md:w-8 md:h-8" />
+                        </button>
+                    </>
+                )}
+
+                <div className="w-full h-full relative flex items-center justify-center pointer-events-none">
+                    {/* Loading/Error States */}
+                    {!isLoaded && !hasError && (
+                        <div className="absolute inset-0 flex items-center justify-center z-[10005]">
+                            <Loader2 className="w-10 h-10 text-white/30 animate-spin" />
+                        </div>
+                    )}
+
+                    {hasError && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-[10005] text-white/20">
+                            <AlertCircle className="w-10 h-10 mb-2" />
+                            <p className="text-[10px] font-black uppercase tracking-widest">Resource Unavailable</p>
+                        </div>
+                    )}
+
+                    {activeItem.youtubeId ? (
+                        <div className="relative w-full max-w-[1280px] aspect-video shadow-2xl bg-black rounded-lg overflow-hidden pointer-events-auto">
+                            <iframe 
+                                src={activeItem.youtubeId ? `https://www.youtube-nocookie.com/embed/${activeItem.youtubeId}?autoplay=1&rel=0` : undefined}
+                                title={activeItem.title}
+                                className="w-full h-full"
+                                frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen
+                            ></iframe>
+                        </div>
+                    ) : activeItem.videoUrl ? (
+                        <div className="relative w-full max-w-[1280px] aspect-video shadow-2xl bg-black rounded-lg overflow-hidden pointer-events-auto flex items-center justify-center">
                             <video 
-                                ref={videoRef} 
-                                src={activeItem.videoUrl} 
+                                src={activeItem.videoUrl || undefined} 
                                 controls 
                                 autoPlay 
-                                playsInline 
-                                onLoadedData={() => setIsHighResLoaded(true)} 
-                                className="max-w-full max-h-full shadow-[0_40px_120px_rgba(0,0,0,0.15)] bg-black" 
+                                className="max-w-full max-h-full"
                             />
-                        ) : (
-                            <>
-                                {/* Lớp 1: Bản Preview sắc nét (1200px) - Tải cực nhanh */}
+                        </div>
+                    ) : (
+                        <div className="relative w-full h-full flex items-center justify-center pointer-events-auto p-4 md:p-0">
+                            {fullUrl && (
                                 <img 
-                                    src={getCloudinaryUrl(activeItem.imageUrl, 'preview')} 
-                                    onLoad={() => setIsPreviewLoaded(true)} 
-                                    className={`absolute max-w-full max-h-full object-contain transition-opacity duration-300 transform-gpu ${isPreviewLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} 
-                                    alt="" 
-                                />
-                                
-                                {/* Lớp 2: Bản High-res (1920px) - Tải đè lên khi hoàn tất để cực kỳ chi tiết */}
-                                <img 
-                                    src={getCloudinaryUrl(activeItem.imageUrl, 'high')} 
+                                    key={fullUrl}
+                                    src={fullUrl} 
                                     alt={activeItem.title} 
-                                    onLoad={() => setIsHighResLoaded(true)} 
-                                    className={`relative max-w-full max-h-full object-contain shadow-[0_40px_120px_rgba(0,0,0,0.15)] transition-opacity duration-700 transform-gpu ${isHighResLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                                    className={`max-w-full max-h-full w-auto h-auto object-contain transition-all duration-700 shadow-2xl ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'}`} 
+                                    loading="eager"
+                                    decoding="async"
+                                    onLoad={() => {
+                                        setIsLoaded(true);
+                                        if (fullUrl) ImageCache.markLoaded(fullUrl);
+                                    }}
+                                    onError={() => setHasError(true)}
                                 />
-                            </>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="absolute bottom-6 w-full text-center pointer-events-none opacity-20 hidden md:block">
+                <span className="text-[8px] font-bold text-white uppercase tracking-[0.5em]">BIGBEE STUDIO • VISUAL ARCHIVE</span>
             </div>
         </div>
     );

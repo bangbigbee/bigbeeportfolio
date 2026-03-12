@@ -14,7 +14,7 @@ interface NavbarProps {
     t: Record<string, string>;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onLogoClick, lang, setLang, isSolid = false, scrollProgress = 0, t }) => {
+const Navbar = React.memo<NavbarProps>(({ onLogoClick, lang, setLang, isSolid = false, scrollProgress = 0, t }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const navItems = getNavItems(lang, t);
@@ -139,6 +139,6 @@ const Navbar: React.FC<NavbarProps> = ({ onLogoClick, lang, setLang, isSolid = f
             </div>
         </>
     );
-};
+});
 
 export default Navbar;

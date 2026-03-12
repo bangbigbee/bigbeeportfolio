@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { ProductCard } from '../types';
+import { getOptimizedUrl } from '../App';
+import SmartImage from './SmartImage';
 
 interface StructuredGridProps {
     items: ProductCard[];
@@ -17,11 +19,11 @@ const StructuredGrid: React.FC<StructuredGridProps> = ({ items, onImageClick }) 
                     onClick={() => onImageClick(item)}
                 >
                     <div className="relative overflow-hidden rounded-none bg-[#fbfbfd] aspect-[4/3] shadow-sm transition-all duration-700 group-hover:shadow-2xl">
-                        <img 
-                            src={item.imageUrl} 
+                        <SmartImage 
+                            src={getOptimizedUrl(item.imageUrl, 'preview')} 
                             alt={item.title} 
-                            className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
-                            loading="lazy"
+                            aspectRatio="4/3"
+                            className="transition-transform duration-[2s] group-hover:scale-105"
                         />
                     </div>
                     <div className="mt-10 text-center md:text-left">

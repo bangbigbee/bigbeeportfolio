@@ -1,40 +1,34 @@
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, memo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ProductCard } from '../types';
-import { getCloudinaryUrl } from '../App';
+import { getOptimizedUrl } from '../App';
 
-const VideoCard: React.FC<{ video: ProductCard; onClick: () => void; desc?: string; light?: boolean }> = ({ video, onClick, desc, light }) => {
+const VideoCard = memo(({ video, onClick, light }: { video: ProductCard; onClick: () => void; light?: boolean }) => {
     const [isLoaded, setIsLoaded] = useState(false);
-    // Sử dụng preset 'thumb' (600px) cho carousel items để scroll mượt nhất
-    const thumbUrl = useMemo(() => video.youtubeId ? video.imageUrl : getCloudinaryUrl(video.imageUrl, 'thumb'), [video.imageUrl, video.youtubeId]);
+    const url = video.imageUrl ? getOptimizedUrl(video.imageUrl, 'thumb') : undefined;
 
     return (
         <article 
             className="relative aspect-video group cursor-pointer overflow-hidden rounded-[6px] shadow-sm flex-shrink-0 w-[calc((100%-8px)/2)] md:w-[calc((100%-24px)/3)] transform-gpu bg-[#111]" 
             onClick={onClick}
+            style={{ isolation: 'isolate' }}
         >
-            {!isLoaded && <div className="absolute inset-0 shimmer-bg-dark z-0" />}
-
-            <img 
-                src={thumbUrl} 
-                onLoad={() => setIsLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-[1200ms] image-load-fade ${isLoaded ? 'loaded opacity-90' : 'opacity-0'} ${video.youtubeId ? '' : 'group-hover:opacity-0'}`} 
-                alt={`${video.title} - BigBee Production`}
-                loading="lazy"
-            />
+            <div className={`absolute inset-0 z-0 ${light ? 'shimmer-premium-dark' : 'shimmer-premium'} transition-opacity duration-700 ${isLoaded ? 'opacity-0' : 'opacity-100'}`} />
             
-            {!video.youtubeId && video.videoUrl && (
-                <video 
-                    src={video.videoUrl} 
-                    muted loop playsInline 
-                    onMouseEnter={(e) => e.currentTarget.play()} 
-                    onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }} 
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" 
-                    aria-hidden="true"
+            {url && (
+                <img 
+                    src={url} 
+                    onLoad={(e) => {
+                        setIsLoaded(true);
+                    }}
+                    decoding="async"
+                    className={`w-full h-full object-cover transition-all duration-[1200ms] ${isLoaded ? 'opacity-90 scale-100' : 'opacity-0 scale-105'}`} 
+                    alt={video.title}
+                    loading="lazy"
                 />
             )}
-
+            
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-700 flex flex-col justify-end p-3 md:p-4 z-10">
                 <h4 className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-tighter mb-1 line-clamp-1">{video.title}</h4>
             </div>
@@ -46,17 +40,16 @@ const VideoCard: React.FC<{ video: ProductCard; onClick: () => void; desc?: stri
             </div>
         </article>
     );
-};
+});
 
 interface VideoCarouselProps {
     videos: ProductCard[];
     onVideoClick: (video: ProductCard) => void;
-    description?: string;
     title?: string;
     light?: boolean;
 }
 
-const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos, onVideoClick, description, title, light = false }) => {
+const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos, onVideoClick, title, light = false }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(true);
@@ -102,7 +95,6 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos, onVideoClick, des
                 {showLeft && (
                     <button 
                         onClick={() => scroll('left')} 
-                        aria-label="Previous"
                         className="absolute -left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 bg-white/80 backdrop-blur-md rounded-full shadow-xl flex items-center justify-center hover:bg-white transition-all hover:scale-110 active:scale-90"
                     >
                         <ChevronLeft className="w-4 h-4 md:w-6 md:h-6 text-black" strokeWidth={2.5} />
@@ -112,17 +104,16 @@ const VideoCarousel: React.FC<VideoCarouselProps> = ({ videos, onVideoClick, des
                 <div 
                     ref={scrollRef} 
                     onScroll={checkScroll} 
-                    className="flex gap-2 md:gap-3 overflow-x-auto hide-scrollbar scroll-smooth pb-4"
+                    className="flex gap-2 md:gap-3 overflow-x-auto hide-scrollbar scroll-smooth pb-4 transform-gpu"
                 >
                     {videos.map((video) => (
-                        <VideoCard key={video.id} video={video} onClick={() => onVideoClick(video)} desc={description} light={light} />
+                        <VideoCard key={video.id} video={video} onClick={() => onVideoClick(video)} light={light} />
                     ))}
                 </div>
 
                 {showRight && (
                     <button 
                         onClick={() => scroll('right')} 
-                        aria-label="Next"
                         className="absolute -right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 md:w-12 md:h-12 bg-white/80 backdrop-blur-md rounded-full shadow-xl flex items-center justify-center hover:bg-white transition-all hover:scale-110 active:scale-90"
                     >
                         <ChevronRight className="w-4 h-4 md:w-6 md:h-6 text-black" strokeWidth={2.5} />

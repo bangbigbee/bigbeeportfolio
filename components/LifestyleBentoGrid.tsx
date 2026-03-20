@@ -43,7 +43,7 @@ const LifestyleBentoGrid: React.FC<{ items: ProductCard[], onImageClick: any }> 
     }, [items]);
 
     return (
-        <div className="w-full grid grid-cols-4 gap-2 md:gap-4 auto-rows-fr">
+        <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 auto-rows-fr">
             {/* Slot Featured: Lớn và Vuông */}
             <BentoSlot items={pools[0]} interval={5000} className="col-span-2 row-span-2" aspectRatio="fill" onImageClick={onImageClick} />
             

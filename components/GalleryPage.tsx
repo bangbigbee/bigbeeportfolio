@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { ProductCard, Language } from '../types';
 import SmartMasonry from './SmartMasonry';
+import SmartImage from './SmartImage';
 import { getOptimizedUrl } from '../App';
 
 interface GalleryPageProps {
@@ -135,7 +136,7 @@ const GalleryPage: React.FC<GalleryPageProps> = ({
 
     return (
         <div className="min-h-screen bg-white pt-16 md:pt-24 pb-12 overflow-x-hidden">
-            <div className="w-full px-4 md:px-10 max-w-[1600px] mx-auto">
+            <div className="w-full px-4 md:px-10 mx-auto">
                 {/* Back Button */}
                 <button 
                     onClick={onBack} 
@@ -200,10 +201,47 @@ const GalleryPage: React.FC<GalleryPageProps> = ({
                 <div className="min-h-[60vh] w-full mt-2">
                     {visibleItems.length > 0 ? (
                         <>
-                            <SmartMasonry 
-                                items={visibleItems} 
-                                onImageClick={(img) => onImageClick(img, filteredContent)} 
-                            />
+                            {activeSubTab === 'films' ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                                    {visibleItems.map((item, idx) => (
+                                        <div 
+                                            key={item.id || idx}
+                                            className="relative rounded-xl overflow-hidden bg-gray-50 group cursor-pointer transform-gpu transition-all duration-500 hover:scale-[1.02] shadow-sm hover:shadow-xl"
+                                            onClick={() => onImageClick(item, filteredContent)}
+                                        >
+                                            <SmartImage
+                                                src={getOptimizedUrl(item.imageUrl, "thumb")}
+                                                alt={item.title}
+                                                aspectRatio="16/9"
+                                                containerClassName="w-full h-full"
+                                                className="transition-transform duration-700 group-hover:scale-105"
+                                                overlay={
+                                                    <>
+                                                        <div className="absolute inset-0 flex items-center justify-center z-20">
+                                                            <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl transform transition-transform group-hover:scale-110">
+                                                                <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20 flex flex-col justify-end p-5">
+                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest truncate">
+                                                                {item.title}
+                                                            </p>
+                                                            <p className="text-[8px] font-medium text-white/60 uppercase tracking-[0.2em] mt-1">
+                                                                {item.subtitle || 'Cinematic Film'}
+                                                            </p>
+                                                        </div>
+                                                    </>
+                                                }
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <SmartMasonry 
+                                    items={visibleItems} 
+                                    onImageClick={(img) => onImageClick(img, filteredContent)} 
+                                />
+                            )}
                             
                             {/* Scroll Sentinel for Infinite Scroll */}
                             <div id="scroll-sentinel" className="h-20 w-full flex items-center justify-center mt-8">

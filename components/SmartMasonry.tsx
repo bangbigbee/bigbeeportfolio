@@ -12,7 +12,7 @@ const SmartMasonry: React.FC<SmartMasonryProps> = ({ items, onImageClick }) => {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="w-full columns-2 md:columns-4 lg:columns-5 gap-2 md:gap-4">
+    <div className="w-full columns-2 md:columns-4 lg:columns-4 gap-2 md:gap-4">
       {items.map((item, idx) => (
         <BentoItem
           key={item.id || idx}

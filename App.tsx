@@ -177,7 +177,7 @@ const App: React.FC = () => {
     const allDataFetched = useRef(false);
     const t = useMemo(() => translations[lang], [translations, lang]);
 
-    const mapRes = useCallback((data: any, catName: string, type: 'image' | 'video' = 'image') => {
+    const mapRes = useCallback((data: any, catName: string, type: 'image' | 'video' = 'image', folderKey?: string) => {
         if (!data) return [];
         
         if (Array.isArray(data)) {
@@ -190,9 +190,10 @@ const App: React.FC = () => {
                 })
                 .map((res: any, idx: number) => {
                     let imageUrl = res.urls?.regular || res.urls?.full || res.urls?.raw || res.download_url;
+                    const uniquePrefix = folderKey ? `${catName}-${folderKey}` : catName;
                     
                     return {
-                        id: `${catName}-${res.id || res.sha || idx}-${idx}`,
+                        id: `${uniquePrefix}-${res.name || res.id || res.sha || idx}-${idx}`,
                         category: catName,
                         title: `${catName} #${idx + 1}`,
                         subtitle: 'Visual Excellence',
@@ -300,7 +301,7 @@ const App: React.FC = () => {
                     name: file.name,
                     download_url: `https://raw.githubusercontent.com/portbigbee/portfolio-photo/main/${folderKey}/${encodeURIComponent(file.name)}?v=${file.sha}`
                 }));
-                const mapped = mapRes(data, 'Wedding', 'image');
+                const mapped = mapRes(data, 'Wedding', 'image', folderKey);
                 
                 let itemNumStr = lowerKey.replace('wedding', '');
                 let itemNum = itemNumStr === '' ? 1 : parseInt(itemNumStr);
@@ -319,7 +320,7 @@ const App: React.FC = () => {
                     name: file.name,
                     download_url: `https://raw.githubusercontent.com/portbigbee/portfolio-photo/main/${folderKey}/${encodeURIComponent(file.name)}?v=${file.sha}`
                 }));
-                const mapped = mapRes(data, config.cat, 'image');
+                const mapped = mapRes(data, config.cat, 'image', folderKey);
                 config.setter(mapped);
                 return;
             }
@@ -350,43 +351,52 @@ const App: React.FC = () => {
             }
 
             // 2. Always fetch fresh data from GitHub on page load to check for new images
-            const response = await fetch(`https://api.github.com/repos/portbigbee/portfolio-photo/git/trees/main?recursive=1&t=${Date.now()}`);
-            if (!response.ok) throw new Error('Failed to fetch GitHub tree');
+            const response = await fetch(`https://api.github.com/repos/portbigbee/portfolio-photo/git/trees/main?recursive=1`);
             
-            const data = await response.json();
-            const tree = data.tree || [];
-            
-            const newImageData: Record<string, {name: string, sha: string}[]> = {};
-            
-            tree.forEach((file: any) => {
-                if (file.type === 'blob') {
-                    const pathParts = file.path.split('/');
-                    if (pathParts.length === 2) {
-                        const folder = pathParts[0];
-                        const fileName = pathParts[1];
-                        if (/\.(jpg|jpeg|png|webp|gif)$/i.test(fileName)) {
-                            if (!newImageData[folder]) newImageData[folder] = [];
-                            newImageData[folder].push({ name: fileName, sha: file.sha });
+            if (!response.ok) {
+                if (response.status === 403) {
+                    console.warn('GitHub API rate limit reached. Using cached or fallback data.');
+                } else {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+            } else {
+                const data = await response.json();
+                const tree = data.tree || [];
+                
+                const newImageData: Record<string, {name: string, sha: string}[]> = {};
+                
+                tree.forEach((file: any) => {
+                    if (file.type === 'blob') {
+                        const pathParts = file.path.split('/');
+                        if (pathParts.length === 2) {
+                            const folder = pathParts[0];
+                            const fileName = pathParts[1];
+                            if (/\.(jpg|jpeg|png|webp|gif)$/i.test(fileName)) {
+                                if (!newImageData[folder]) newImageData[folder] = [];
+                                newImageData[folder].push({ name: fileName, sha: file.sha });
+                            }
                         }
                     }
+                });
+                
+                // 3. Only update state if data has actually changed to prevent unnecessary re-renders
+                const newDataStr = JSON.stringify(newImageData);
+                const cachedDataStr = JSON.stringify(cachedData);
+                
+                if (newDataStr !== cachedDataStr) {
+                    localStorage.setItem(GITHUB_DATA_CACHE_KEY, JSON.stringify({
+                        data: newImageData,
+                        timestamp: Date.now()
+                    }));
+                    fetchAllData(newImageData);
                 }
-            });
-            
-            // 3. Only update state if data has actually changed to prevent unnecessary re-renders
-            const newDataStr = JSON.stringify(newImageData);
-            const cachedDataStr = JSON.stringify(cachedData);
-            
-            if (newDataStr !== cachedDataStr) {
-                localStorage.setItem(GITHUB_DATA_CACHE_KEY, JSON.stringify({
-                    data: newImageData,
-                    timestamp: Date.now()
-                }));
-                fetchAllData(newImageData);
             }
         } catch (error) {
-            console.error('Error fetching GitHub data:', error);
+            console.warn('GitHub fetch failed, falling back to cache/static data:', error);
+            // If fetch failed but we didn't have fresh cache, fetchAllData was already called with cachedData in step 1 if it existed.
+            // If even cachedData is null, we use IMAGE_DATA.
             if (!cachedData) {
-                fetchAllData(IMAGE_DATA); // Final fallback
+                fetchAllData(IMAGE_DATA);
             }
         }
     }, [fetchAllData]);

@@ -44,17 +44,17 @@ const InteriorBentoGrid: React.FC<{ items: ProductCard[], onImageClick: any }> =
     }, [items]);
 
     return (
-        <div className="w-full grid grid-cols-4 gap-2 md:gap-4 auto-rows-fr">
+        <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 auto-rows-fr">
             {/* Cột chính bên trái: Sử dụng transform 'default' (2000px) cho các ô lớn để tránh bị mờ */}
-            <div className="col-span-3 grid grid-cols-2 gap-2 md:gap-4 row-span-2 auto-rows-fr">
+            <div className="col-span-2 md:col-span-3 grid grid-cols-2 gap-2 md:gap-4 row-span-2 auto-rows-fr">
                 <BentoSlot items={pools[0]} interval={6500} className="col-span-2" aspectRatio="fill" onImageClick={onImageClick} transform="preview" />
                 <BentoSlot items={pools[1]} interval={5500} className="col-span-1" aspectRatio="1/1" onImageClick={onImageClick} transform="thumb" />
                 <BentoSlot items={pools[2]} interval={5800} className="col-span-1" aspectRatio="1/1" onImageClick={onImageClick} transform="thumb" />
             </div>
             {/* Cột bên phải: Cao - Sử dụng transform 'preview' */}
-            <BentoSlot items={pools[3]} interval={7500} className="col-span-1 row-span-2" aspectRatio="fill" onImageClick={onImageClick} transform="preview" />
+            <BentoSlot items={pools[3]} interval={7500} className="col-span-2 md:col-span-1 row-span-2" aspectRatio="fill" onImageClick={onImageClick} transform="preview" />
             {/* Hàng ngang dưới cùng: Rất rộng - Sử dụng transform 'full' (1400px) để đảm bảo sắc nét tuyệt đối */}
-            <BentoSlot items={pools[4]} interval={8500} className="col-span-4" aspectRatio="fill" onImageClick={onImageClick} transform="full" />
+            <BentoSlot items={pools[4]} interval={8500} className="col-span-2 md:col-span-4" aspectRatio="fill" onImageClick={onImageClick} transform="full" />
         </div>
     );
 };
